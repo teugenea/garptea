@@ -11,16 +11,23 @@ services:
       POSTGRES_USER: postgres
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - ${DB_DATA_DIR}:/var/lib/postgresql/data
     user: ${USER_ID}:${GROUP_ID}
   
   casdoor:
     image: casbin/casdoor:v1.595.0
+    container_name: garptea-casdoor
+    restart: unless-stopped
     ports:
       - 8000:8000
     environment:
       - driverName=postgres
-      - dataSourceName='user=casdoor password=casdoor host=localhost port=5432 sslmode=disable dbname=casdoor_db'
+      - "dataSourceName=user=casdoor password=casdoor host=host.docker.internal port=5432 sslmode=disable dbname=casdoor_db"
     depends_on:
       - postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
