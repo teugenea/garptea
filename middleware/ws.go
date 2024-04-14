@@ -22,19 +22,20 @@ func WsUpgrader(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 	claims := token.Claims.(jwt.MapClaims)
-	groups := convertToStringArr(claims["groups"].([]interface{}))
+	groups := convertToStringMap(claims["groups"].([]interface{}))
 	group := groups[util.ROLE_USER]
 	if len(group) == 0 {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
+	c.Locals("claims", claims)
 	if websocket.IsWebSocketUpgrade(c) {
 		return c.Next()
 	}
 	return c.SendStatus(fiber.StatusUpgradeRequired)
 }
 
-func convertToStringArr(data []interface{}) map[string]string {
+func convertToStringMap(data []interface{}) map[string]string {
 	s := make(map[string]string, len(data))
 	for _, v := range data {
 		value := fmt.Sprint(v)

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	ROLE_USER string = "garptea/user"
+	ROLE_USER string = "garptea/user_group"
 )
 
 type CodeRequest struct {
