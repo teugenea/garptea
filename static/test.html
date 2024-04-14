@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello WebSocket</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+
+
+    <script>
+        // const stompClient = new StompJs.Client();
+        // stompClient.webSocketFactory = function () {
+        //     return new SockJS("https://psyduck.home:3000/ws")
+        // }
+        // stompClient.onConnect = (frame) => {
+        //     console.log('Connected: ' + frame);
+        //     // stompClient.subscribe('/in-game/topic/events', (greeting) => {
+        //     //     console.log(JSON.parse(greeting.body).content);
+        //     // });
+
+        //     // stompClient.subscribe("/in-game/user/queue/mm", (greeting) => {
+        //     //     console.log(JSON.parse(greeting.body).content);
+        //     // });
+
+        //     // stompClient.publish({
+        //     //     destination: "/app/cmd",
+        //     //     body: JSON.stringify({'name': '111'})
+        //     // });
+
+        // };
+
+        // stompClient.onWebSocketError = (error) => {
+        //     console.error('Error with websocket', error);
+        // };
+
+        // stompClient.onStompError = (frame) => {
+        //     console.error('Broker reported error: ' + frame.headers['message']);
+        //     console.error('Additional details: ' + frame.body);
+        // };
+
+        // stompClient.activate();
+
+        conn = new WebSocket("wss://psyduck.home:3000/ws?t=eyJhbGciOiJSUzI1NiIsImtpZCI6ImNlcnQtYnVpbHQtaW4iLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsiMzhlMTE4MzcxYWNlYjUzNTc0YjYiXSwiZXhwIjoxNzEzNjkyNDQ2LCJncm91cHMiOlsiZ2FycHRlYS91c2VyX2dyb3VwIl0sImlhdCI6MTcxMzA4NzY0NiwiaWQiOiI1OTc2ODdiNy04ODk5LTQ3NzctOTY1Yy1jZWU5ZGNjNmNmMWMiLCJpc09ubGluZSI6ZmFsc2UsImlzcyI6Imh0dHA6Ly8xOTIuMTY4LjAuMTA0OjgwMDAiLCJqdGkiOiJhZG1pbi81Y2U4YjdhZC00YjcyLTQ0ZWMtYjAzOC0zNTViMzQ3NDkwOWQiLCJuYW1lIjoidXNlciIsIm5iZiI6MTcxMzA4NzY0Niwibm9uY2UiOiIiLCJzY29wZSI6Im9wZW5pZCIsInN1YiI6IjU5NzY4N2I3LTg4OTktNDc3Ny05NjVjLWNlZTlkY2M2Y2YxYyIsInRhZyI6InN0YWZmIiwidG9rZW5UeXBlIjoiYWNjZXNzLXRva2VuIn0.GKCjFTplg6klgmYRPc4fOpy3ubAnx-hsXUMJF7k8MD4QIrqiWwoxVRX8PLSAtuQYBUMVeUMI_zYOO8KFbOPG_j_8Npq9_jFnVVYtBTBkFMFsAbJUoivYC63jVx-uvGiWyPKmwaB6P-wx0gQxaGJoLGaMQFvrdpfG98mzfK_lMC6UdW4R2p5c1SgliCCXyV6CqN4Wk4K6S20ZhXP2LJ8j4ska4oBRE8hyMUVGKSMyiTTIycE4J04c_ZEbzIpnpW0Yq-c0ro_akebSgwURyDM9uO8JDRiuIoQ1CPjRg1yO9lCMmgpYhq9zOclTq_XDeH7bMM2XUvut9PDf2c8kEjvR7KzcaJACwiPAob1g2XjaiKBQnILTP7VMjBwRzSs0qqIdfeoGrjyedpfPk3vpjTCTT4gxWi54sdQta56RicYHLW8tyoO98sYNwNxfINl1fjSjJ1uZLK4onRo6abQKK8VfWzNiwbFgRaRk8EEEj9JjXUPWtGi4vfSwgQW9rdeu6kjYGeZHM1EKxpNaaUbEuJLrGoBG46GZbYxRSorY9f1QWy2sUAMkpqqqoNEAQRgazljWaq12s3nNzBl8sV7SHw67eJ2bY02JTOSrVI5DxqZw05X_OhaQ3CMcU26xUWfoLYVtWLityp40JK8sjQmE1N9fwbfs5VQLNi_C8LbLYhO0Ul8")
+        conn.onopen = function(e) {
+            console.log(e)
+        }
+    </script>
+</head>
+<body>
+
+</body>
+</html>

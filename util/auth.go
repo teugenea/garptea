@@ -8,7 +8,14 @@ import (
 
 	"garptea/config"
 
+	"os"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+)
+
+const (
+	ROLE_USER string = "garptea/user"
 )
 
 type CodeRequest struct {
@@ -48,7 +55,7 @@ func GetLoginUrl() string {
 		"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=openid&state=loggedin",
 		oidcUrl+oidcAuthUrl,
 		oidcClientId,
-		url.QueryEscape("http://psyduck.home:3000/token"),
+		url.QueryEscape("https://psyduck.home:3000/token"),
 	)
 }
 
@@ -56,4 +63,16 @@ func GetJwksUrl() string {
 	oidcUrl := config.GetStringOrDefault(config.OIDC_PROVIDER_URL, "")
 	oidcJwksUrl := config.GetStringOrDefault(config.JWKS_URL, "")
 	return oidcUrl + oidcJwksUrl
+}
+
+func ParseJwtToken(token string) (*jwt.Token, error) {
+	claims := jwt.MapClaims{}
+	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		s, _ := os.ReadFile(config.GetStringOrDefault(config.PUBLIC_CERT_FILE, ""))
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(s))
+	})
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
 }
