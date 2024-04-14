@@ -11,38 +11,40 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type ConfiKey string
+type ConfigKey string
 
 const (
-	OIDC_PROVIDER_URL     ConfiKey = "OIDC_PROVIDER_URL"
-	JWKS_URL              ConfiKey = "JWKS_URL"
-	AUTH_URL              ConfiKey = "AUTH_URL"
-	OIDC_ACCESS_TOKEN_URL ConfiKey = "OIDC_ACCESS_TOKEN_URL"
-	OIDC_CLIENT_ID        ConfiKey = "OIDC_CLIENT_ID"
-	OIDC_CLIENT_SECRET    ConfiKey = "OIDC_CLIENT_SECRET"
-	PUBLIC_CERT_FILE      ConfiKey = "PUBLIC_CERT_FILE"
-	PORT                  ConfiKey = "PORT"
-	TLS_ENABLED           ConfiKey = "TLS_ENABLED"
-	TLS_CERT_FILE         ConfiKey = "TLS_CERT_FILE"
-	TLS_KEY_FILE          ConfiKey = "TLS_KEY_FILE"
+	PORT                  ConfigKey = "PORT"
+	HOST                  ConfigKey = "HOST"
+	OIDC_PROVIDER_URL     ConfigKey = "OIDC_PROVIDER_URL"
+	JWKS_URL              ConfigKey = "JWKS_URL"
+	AUTH_URL              ConfigKey = "AUTH_URL"
+	OIDC_ACCESS_TOKEN_URL ConfigKey = "OIDC_ACCESS_TOKEN_URL"
+	OIDC_CLIENT_ID        ConfigKey = "OIDC_CLIENT_ID"
+	OIDC_CLIENT_SECRET    ConfigKey = "OIDC_CLIENT_SECRET"
+	PUBLIC_CERT_FILE      ConfigKey = "PUBLIC_CERT_FILE"
+	TLS_ENABLED           ConfigKey = "TLS_ENABLED"
+	TLS_CERT_FILE         ConfigKey = "TLS_CERT_FILE"
+	TLS_KEY_FILE          ConfigKey = "TLS_KEY_FILE"
 )
 
 var (
-	_mandatoryKeys = [...]ConfiKey{
+	_mandatoryKeys = [...]ConfigKey{
 		JWKS_URL,
 		OIDC_PROVIDER_URL,
 		AUTH_URL,
 		OIDC_ACCESS_TOKEN_URL,
 		OIDC_CLIENT_ID,
 		OIDC_CLIENT_SECRET,
+		HOST,
 	}
 )
 
-func GetEnvVar(key ConfiKey) string {
+func GetEnvVar(key ConfigKey) string {
 	return os.Getenv(string(key))
 }
 
-func GetStringOrDefault(key ConfiKey, defaultValue string) string {
+func GetStringOrDefault(key ConfigKey, defaultValue string) string {
 	value := os.Getenv(string(key))
 	if len(value) == 0 {
 		return defaultValue
@@ -50,7 +52,7 @@ func GetStringOrDefault(key ConfiKey, defaultValue string) string {
 	return value
 }
 
-func GetBoolOrDefault(key ConfiKey, defaultValue bool) bool {
+func GetBoolOrDefault(key ConfigKey, defaultValue bool) bool {
 	strValue := GetEnvVar(key)
 	if len(strValue) == 0 {
 		return defaultValue
@@ -63,7 +65,7 @@ func GetBoolOrDefault(key ConfiKey, defaultValue bool) bool {
 	return value
 }
 
-func ContatEnvVars(keys ...ConfiKey) string {
+func ContatEnvVars(keys ...ConfigKey) string {
 	var buffer bytes.Buffer
 	for _, key := range keys {
 		buffer.WriteString(GetEnvVar(key))

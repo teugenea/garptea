@@ -8,28 +8,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 
-	jwtware "github.com/gofiber/contrib/jwt"
-	"github.com/golang-jwt/jwt/v5"
-
-	"garptea/auth"
 	"garptea/config"
-	"garptea/handler"
+	"garptea/router"
 )
 
 func main() {
 	config.LoadConfig()
 	app := fiber.New()
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World 👋!")
-	})
-	app.Get("/token", handler.GetJwtToken)
-
-	app.Use(jwtware.New(jwtware.Config{
-		JWKSetURLs:   []string{auth.GetJwksUrl()},
-		ErrorHandler: handler.JwtErrorHandler,
-	}))
-	app.Get("/restricted", restricted)
+	router.SetupRoutes(app)
 
 	if !config.GetBoolOrDefault(config.TLS_ENABLED, true) {
 		port := ":" + config.GetStringOrDefault(config.PORT, "3000")
@@ -41,13 +27,6 @@ func main() {
 		}
 		log.Fatal(app.Listener(listener))
 	}
-}
-
-func restricted(c *fiber.Ctx) error {
-	user := c.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	name := claims["name"].(string)
-	return c.SendString("Welcome " + name)
 }
 
 func createTlsListener() (net.Listener, error) {
