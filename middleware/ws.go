@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"garptea/util"
+	"garptea/auth"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -17,13 +17,13 @@ func WsUpgrader(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
-	token, err := util.ParseJwtToken(rawToken)
+	token, err := auth.ParseJwtToken(rawToken)
 	if err != nil {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	groups := convertToStringArr(claims["groups"].([]interface{}))
-	group := groups[util.ROLE_USER]
+	group := groups[auth.ROLE_USER]
 	if len(group) == 0 {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
