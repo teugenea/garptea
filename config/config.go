@@ -29,7 +29,7 @@ const (
 )
 
 var (
-	_mandatoryKeys = [...]ConfigKey{
+	mandatoryKeys = [...]ConfigKey{
 		JWKS_URL,
 		OIDC_PROVIDER_URL,
 		AUTH_URL,
@@ -52,6 +52,14 @@ func GetStringOrDefault(key ConfigKey, defaultValue string) string {
 	return value
 }
 
+func GetStringOrEmpty(key ConfigKey) string {
+	value := os.Getenv(string(key))
+	if len(value) == 0 {
+		return ""
+	}
+	return value
+}
+
 func GetBoolOrDefault(key ConfigKey, defaultValue bool) bool {
 	strValue := GetEnvVar(key)
 	if len(strValue) == 0 {
@@ -59,7 +67,7 @@ func GetBoolOrDefault(key ConfigKey, defaultValue bool) bool {
 	}
 	value, err := strconv.ParseBool(strValue)
 	if err != nil {
-		log.Error(fmt.Sprintf("Cannot parse bool config value (%s)", key))
+		log.Error(fmt.Sprintf("Cannot parse bool config value (%s), return default (%t)", key, defaultValue))
 		return defaultValue
 	}
 	return value
@@ -83,7 +91,7 @@ func LoadConfig() {
 	}
 	log.SetLevel(log.LevelInfo)
 
-	for _, mandatoryKey := range _mandatoryKeys {
+	for _, mandatoryKey := range mandatoryKeys {
 		if len(GetEnvVar(mandatoryKey)) == 0 {
 			panic(fmt.Sprintf("Cannot load config with key '%s'", mandatoryKey))
 		}

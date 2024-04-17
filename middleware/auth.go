@@ -8,7 +8,6 @@ import (
 	"garptea/handler"
 )
 
-// Protected protect routes
 func Protected() fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		JWKSetURLs:   []string{auth.GetJwksUrl()},

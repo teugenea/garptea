@@ -30,8 +30,8 @@ func main() {
 }
 
 func createTlsListener() (net.Listener, error) {
-	certFile := config.GetStringOrDefault(config.TLS_CERT_FILE, "")
-	keyFile := config.GetStringOrDefault(config.TLS_KEY_FILE, "")
+	certFile := config.GetStringOrEmpty(config.TLS_CERT_FILE)
+	keyFile := config.GetStringOrEmpty(config.TLS_KEY_FILE)
 	if len(certFile) == 0 {
 		return nil, errors.New("cannot load tls certificate file")
 	}

@@ -36,8 +36,8 @@ func GetTokenByAccessCode(code string) string {
 		ClientSecret: config.GetEnvVar(config.OIDC_CLIENT_SECRET),
 		GrantType:    "authorization_code",
 	}
-	oidcUrl := config.GetStringOrDefault(config.OIDC_PROVIDER_URL, "")
-	oidcAccessTokenUrl := config.GetStringOrDefault(config.OIDC_ACCESS_TOKEN_URL, "")
+	oidcUrl := config.GetStringOrEmpty(config.OIDC_PROVIDER_URL)
+	oidcAccessTokenUrl := config.GetStringOrEmpty(config.OIDC_ACCESS_TOKEN_URL)
 	req := fiber.Post(oidcUrl + oidcAccessTokenUrl)
 	jsonBody, _ := json.Marshal(body)
 	req.Body(jsonBody)
@@ -48,9 +48,9 @@ func GetTokenByAccessCode(code string) string {
 }
 
 func GetLoginUrl() string {
-	oidcUrl := config.GetStringOrDefault(config.OIDC_PROVIDER_URL, "")
-	oidcAuthUrl := config.GetStringOrDefault(config.AUTH_URL, "")
-	oidcClientId := config.GetStringOrDefault(config.OIDC_CLIENT_ID, "")
+	oidcUrl := config.GetStringOrEmpty(config.OIDC_PROVIDER_URL)
+	oidcAuthUrl := config.GetStringOrEmpty(config.AUTH_URL)
+	oidcClientId := config.GetStringOrEmpty(config.OIDC_CLIENT_ID)
 	return fmt.Sprintf(
 		"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=openid&state=loggedin",
 		oidcUrl+oidcAuthUrl,
@@ -60,15 +60,15 @@ func GetLoginUrl() string {
 }
 
 func GetJwksUrl() string {
-	oidcUrl := config.GetStringOrDefault(config.OIDC_PROVIDER_URL, "")
-	oidcJwksUrl := config.GetStringOrDefault(config.JWKS_URL, "")
+	oidcUrl := config.GetStringOrEmpty(config.OIDC_PROVIDER_URL)
+	oidcJwksUrl := config.GetStringOrEmpty(config.JWKS_URL)
 	return oidcUrl + oidcJwksUrl
 }
 
 func ParseJwtToken(token string) (*jwt.Token, error) {
 	claims := jwt.MapClaims{}
 	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		s, _ := os.ReadFile(config.GetStringOrDefault(config.PUBLIC_CERT_FILE, ""))
+		s, _ := os.ReadFile(config.GetStringOrEmpty(config.PUBLIC_CERT_FILE))
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(s))
 	})
 	if err != nil {

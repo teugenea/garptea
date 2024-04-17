@@ -22,8 +22,7 @@ func SetupRoutes(app *fiber.App) {
 		return c.SendString("Hello, World 👋!")
 	})
 
-	app.Use(middleware.WsUpgrader)
-	app.Get("/ws", websocket.New(handler.WsHandler))
+	app.Get("/ws", middleware.WsUpgrader, websocket.New(handler.WsHandler))
 }
 
 func restricted(c *fiber.Ctx) error {
