@@ -28,6 +28,7 @@ func WsUpgrader(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
 
+	c.Locals("claims", claims)
 	if websocket.IsWebSocketUpgrade(c) {
 		return c.Next()
 	}

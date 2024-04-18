@@ -10,11 +10,13 @@ import (
 
 	"garptea/config"
 	"garptea/router"
+	"garptea/ws"
 )
 
 func main() {
 	config.LoadConfig()
 	app := fiber.New()
+	go ws.RunWsLoop()
 	router.SetupRoutes(app)
 
 	if !config.GetBoolOrDefault(config.TLS_ENABLED, true) {
