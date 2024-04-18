@@ -9,13 +9,17 @@ import (
 )
 
 func WsHandler(c *websocket.Conn) {
-	defer ws.Unregister(c)
 
 	claims := c.Locals("claims").(jwt.MapClaims)
-	ws.Register(ws.ConnectionParams{
+	connectionParams := ws.ConnectionParams{
 		UserId:     claims["id"].(string),
 		Connection: c,
-	})
+	}
+
+	defer ws.Unregister(connectionParams)
+
+	ws.Register(connectionParams)
+
 	c.SetPongHandler(func(appData string) error {
 		log.Info("pong")
 		return nil
@@ -26,8 +30,8 @@ func WsHandler(c *websocket.Conn) {
 	for {
 		messageType, message, err := c.ReadMessage()
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Error("read error: %s", err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
+				log.Errorf("read error: %s, user_id=%s", err, connectionParams.UserId)
 			}
 			return
 		}

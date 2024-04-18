@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"encoding/json"
 	"net/url"
 
 	"fmt"
@@ -10,12 +9,15 @@ import (
 
 	"os"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 )
 
 const (
 	ROLE_USER string = "garptea/user_group"
+)
+
+var (
+	casdoorClient *casdoorsdk.Client
 )
 
 type CodeRequest struct {
@@ -29,22 +31,9 @@ type TokenResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
-func GetTokenByAccessCode(code string) string {
-	body := CodeRequest{
-		Code:         code,
-		ClientId:     config.GetEnvVar(config.OIDC_CLIENT_ID),
-		ClientSecret: config.GetEnvVar(config.OIDC_CLIENT_SECRET),
-		GrantType:    "authorization_code",
-	}
-	oidcUrl := config.GetStringOrEmpty(config.OIDC_PROVIDER_URL)
-	oidcAccessTokenUrl := config.GetStringOrEmpty(config.OIDC_ACCESS_TOKEN_URL)
-	req := fiber.Post(oidcUrl + oidcAccessTokenUrl)
-	jsonBody, _ := json.Marshal(body)
-	req.Body(jsonBody)
-	_, rawResp, _ := req.Bytes()
-	token := TokenResponse{}
-	json.Unmarshal(rawResp, &token)
-	return token.AccessToken
+func GetTokenByAccessCode(code string, state string) string {
+	resp, _ := getClietn().GetOAuthToken(code, state)
+	return resp.AccessToken
 }
 
 func GetLoginUrl() string {
@@ -65,14 +54,40 @@ func GetJwksUrl() string {
 	return oidcUrl + oidcJwksUrl
 }
 
-func ParseJwtToken(token string) (*jwt.Token, error) {
-	claims := jwt.MapClaims{}
-	t, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		s, _ := os.ReadFile(config.GetStringOrEmpty(config.PUBLIC_CERT_FILE))
-		return jwt.ParseRSAPublicKeyFromPEM([]byte(s))
-	})
-	if err != nil {
-		return nil, err
+func ParseJwtToken(token string) (*casdoorsdk.Claims, error) {
+	claims, _ := getClietn().ParseJwtToken(token)
+	user, _ := getClietn().GetUserByUserId(claims.User.Id)
+	session, _ := getClietn().GetSession(claims.User.Name, "garptea-app")
+	if session == nil {
+
 	}
-	return t, nil
+	if user == nil {
+
+	}
+	if user.IsForbidden {
+
+	}
+	return claims, nil
+}
+
+func getClietn() *casdoorsdk.Client {
+	if casdoorClient == nil {
+		casdoorClient = createClient()
+	}
+	return casdoorClient
+}
+
+func createClient() *casdoorsdk.Client {
+	cert, err := os.ReadFile(config.GetStringOrEmpty(config.PUBLIC_CERT_FILE))
+	if err != nil {
+		panic(err)
+	}
+	return casdoorsdk.NewClient(
+		config.GetStringOrEmpty(config.OIDC_PROVIDER_URL),
+		config.GetEnvVar(config.OIDC_CLIENT_ID),
+		config.GetEnvVar(config.OIDC_CLIENT_SECRET),
+		string(cert),
+		"garptea",
+		"garptea-app",
+	)
 }

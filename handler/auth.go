@@ -12,7 +12,7 @@ func JwtErrorHandler(c *fiber.Ctx, err error) error {
 
 func GetJwtToken(c *fiber.Ctx) error {
 	queries := c.Queries()
-	token := auth.GetTokenByAccessCode(queries["code"])
+	token := auth.GetTokenByAccessCode(queries["code"], queries["state"])
 	c.Locals("user", token)
 	return c.SendString(token)
 }

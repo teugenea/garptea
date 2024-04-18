@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	clients    = make(map[*websocket.Conn]*client)
-	register   = make(chan ConnectionParams)
-	unregister = make(chan *websocket.Conn)
-	command    = make(chan ClientMessage)
+	clients      = make(map[*websocket.Conn]*client)
+	register     = make(chan ConnectionParams)
+	unregister   = make(chan ConnectionParams)
+	perUserMsg   = make(chan ClientMessage)
+	broadcastMsg = make(chan ClientMessage)
 )
 
 type ConnectionParams struct {
@@ -41,21 +42,26 @@ func RunWsLoop() {
 			go runHeartBeatLoop(params.Connection, client)
 
 		case connection := <-unregister:
-			cl := clients[connection]
-			log.Info("Disconnect client user_id=%s", cl.userId)
-			delete(clients, connection)
+			delete(clients, connection.Connection)
 
-		case cmd := <-command:
-			client := clients[cmd.Connection]
-			log.Info("Command: %s", cmd.Message)
-			client.hbTicker.Reset(time.Second * 5)
+		case cmd := <-perUserMsg:
+			cl := clients[cmd.Connection]
+			log.Infof("Command: %s", cmd.Message)
+			cl.hbTicker.Reset(time.Second * 5)
+
+			//case msg := <-broadcastMsg:
+
 		}
 	}
 }
 
-func Unregister(c *websocket.Conn) {
+func Unregister(c ConnectionParams) {
+	cl := clients[c.Connection]
+	log.Infof("Disconnect client user_id=%s", cl.userId)
+	cl.hbTicker.Stop()
+	c.Connection.WriteMessage(websocket.CloseMessage, []byte{})
+	c.Connection.Close()
 	unregister <- c
-	c.Close()
 }
 
 func Register(c ConnectionParams) {
@@ -63,22 +69,19 @@ func Register(c ConnectionParams) {
 }
 
 func ProcessMessage(msg ClientMessage) {
-	command <- msg
+	perUserMsg <- msg
 }
 
-func runHeartBeatLoop(c *websocket.Conn, client *client) {
-	defer client.hbTicker.Stop()
+func runHeartBeatLoop(c *websocket.Conn, cl *client) {
 	for {
 		select {
-		case <-client.hbTicker.C:
+		case <-cl.hbTicker.C:
 			err := c.WriteControl(websocket.PingMessage, nil, time.Now().Add(time.Second*3))
 			if err != nil {
-				log.Info("Disconnect client user_id=%s (no ping response)", client.userId)
-				Unregister(c)
 				return
 			}
 		case connection := <-unregister:
-			if connection == c {
+			if cl.userId == connection.UserId {
 				return
 			}
 		}

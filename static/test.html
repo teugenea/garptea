@@ -50,6 +50,9 @@
         conn.onmessage = function(e) {
             console.log(e)
         }
+        function disc() {
+            conn.close(1000)
+        }
     </script>
 </head>
 <body>
