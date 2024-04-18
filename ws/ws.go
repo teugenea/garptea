@@ -11,12 +11,17 @@ var (
 	clients    = make(map[*websocket.Conn]*client)
 	register   = make(chan ConnectionParams)
 	unregister = make(chan *websocket.Conn)
-	command    = make(chan string)
+	command    = make(chan ClientMessage)
 )
 
 type ConnectionParams struct {
 	Connection *websocket.Conn
 	UserId     string
+}
+
+type ClientMessage struct {
+	Connection *websocket.Conn
+	Message    string
 }
 
 type client struct {
@@ -28,20 +33,22 @@ func RunWsLoop() {
 	for {
 		select {
 		case params := <-register:
-			clients[params.Connection] = &client{
+			client := &client{
 				userId:   params.UserId,
 				hbTicker: time.NewTicker(time.Second * 5),
 			}
-			go runHeartBeatLoop(params.Connection)
+			clients[params.Connection] = client
+			go runHeartBeatLoop(params.Connection, client)
 
 		case connection := <-unregister:
-			//client := clients[connection]
-
+			cl := clients[connection]
+			log.Info("Disconnect client user_id=%s", cl.userId)
 			delete(clients, connection)
 
 		case cmd := <-command:
-			log.Info("Command: %s", cmd)
-
+			client := clients[cmd.Connection]
+			log.Info("Command: %s", cmd.Message)
+			client.hbTicker.Reset(time.Second * 5)
 		}
 	}
 }
@@ -55,8 +62,25 @@ func Register(c ConnectionParams) {
 	register <- c
 }
 
-func runHeartBeatLoop(c *websocket.Conn) {
-	for {
+func ProcessMessage(msg ClientMessage) {
+	command <- msg
+}
 
+func runHeartBeatLoop(c *websocket.Conn, client *client) {
+	defer client.hbTicker.Stop()
+	for {
+		select {
+		case <-client.hbTicker.C:
+			err := c.WriteControl(websocket.PingMessage, nil, time.Now().Add(time.Second*3))
+			if err != nil {
+				log.Info("Disconnect client user_id=%s (no ping response)", client.userId)
+				Unregister(c)
+				return
+			}
+		case connection := <-unregister:
+			if connection == c {
+				return
+			}
+		}
 	}
 }

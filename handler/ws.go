@@ -23,7 +23,6 @@ func WsHandler(c *websocket.Conn) {
 	c.SetCloseHandler(func(code int, text string) error {
 		return nil
 	})
-	//go ws.RunHeartBeatLoop(c)
 	for {
 		messageType, message, err := c.ReadMessage()
 		if err != nil {
@@ -34,6 +33,10 @@ func WsHandler(c *websocket.Conn) {
 		}
 		if messageType == websocket.TextMessage {
 			log.Info(message)
+			ws.ProcessMessage(ws.ClientMessage{
+				Connection: c,
+				Message:    string(message),
+			})
 		}
 	}
 }
