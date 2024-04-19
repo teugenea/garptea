@@ -4,10 +4,10 @@ import (
 	"garptea/handler"
 	"garptea/middleware"
 
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func SetupRoutes(app *fiber.App) {
@@ -23,11 +23,10 @@ func SetupRoutes(app *fiber.App) {
 	})
 
 	app.Get("/ws", middleware.WsUpgrader, websocket.New(handler.WsHandler))
+	app.Post("/hook", handler.ActualizeUserAuth)
 }
 
 func restricted(c *fiber.Ctx) error {
-	user := c.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	name := claims["name"].(string)
-	return c.SendString("Welcome " + name)
+	claims := c.Locals("claims").(*casdoorsdk.Claims)
+	return c.SendString("Welcome " + claims.User.Name)
 }

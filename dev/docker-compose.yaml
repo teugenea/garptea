@@ -15,11 +15,11 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ${DB_DATA_DIR}:/var/lib/postgresql/data
+      - /home/ltdev/Projects/0_data/garptea-pg:/var/lib/postgresql/data
     user: ${USER_ID}:${GROUP_ID}
   
   casdoor:
-    image: casbin/casdoor:v1.595.0
+    image: mycs:latest
     container_name: garptea-casdoor
     restart: unless-stopped
     ports:
@@ -31,3 +31,4 @@ services:
       - postgres
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "psyduck.home:192.168.0.105"

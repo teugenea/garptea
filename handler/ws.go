@@ -3,16 +3,16 @@ package handler
 import (
 	"garptea/ws"
 
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2/log"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func WsHandler(c *websocket.Conn) {
 
-	claims := c.Locals("claims").(jwt.MapClaims)
+	claims := c.Locals("claims").(*casdoorsdk.Claims)
 	connectionParams := ws.ConnectionParams{
-		UserId:     claims["id"].(string),
+		UserId:     claims.User.Id,
 		Connection: c,
 	}
 
@@ -22,6 +22,9 @@ func WsHandler(c *websocket.Conn) {
 
 	c.SetPongHandler(func(appData string) error {
 		log.Info("pong")
+		// if err := auth.ValidateUserAndSession(claims); err != nil {
+		// 	ws.Unregister(connectionParams)
+		// }
 		return nil
 	})
 	c.SetCloseHandler(func(code int, text string) error {

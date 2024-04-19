@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"context"
+	"errors"
 	"net/url"
+	"time"
 
 	"fmt"
 
@@ -9,15 +12,14 @@ import (
 
 	"os"
 
+	"github.com/allegro/bigcache/v3"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
-)
-
-const (
-	ROLE_USER string = "garptea/user_group"
+	"golang.org/x/oauth2"
 )
 
 var (
 	casdoorClient *casdoorsdk.Client
+	userCache, _  = bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
 )
 
 type CodeRequest struct {
@@ -27,13 +29,8 @@ type CodeRequest struct {
 	GrantType    string `json:"grant_type"`
 }
 
-type TokenResponse struct {
-	AccessToken string `json:"access_token"`
-}
-
-func GetTokenByAccessCode(code string, state string) string {
-	resp, _ := getClietn().GetOAuthToken(code, state)
-	return resp.AccessToken
+func GetTokenByAccessCode(code string, state string) (*oauth2.Token, error) {
+	return getClient().GetOAuthToken(code, state)
 }
 
 func GetLoginUrl() string {
@@ -48,29 +45,44 @@ func GetLoginUrl() string {
 	)
 }
 
-func GetJwksUrl() string {
-	oidcUrl := config.GetStringOrEmpty(config.OIDC_PROVIDER_URL)
-	oidcJwksUrl := config.GetStringOrEmpty(config.JWKS_URL)
-	return oidcUrl + oidcJwksUrl
-}
-
 func ParseJwtToken(token string) (*casdoorsdk.Claims, error) {
-	claims, _ := getClietn().ParseJwtToken(token)
-	user, _ := getClietn().GetUserByUserId(claims.User.Id)
-	session, _ := getClietn().GetSession(claims.User.Name, "garptea-app")
-	if session == nil {
-
+	claims, parseErr := getClient().ParseJwtToken(token)
+	if parseErr != nil {
+		return nil, parseErr
 	}
-	if user == nil {
-
-	}
-	if user.IsForbidden {
-
+	if validateErr := ValidateUserAndSession(token, claims); validateErr != nil {
+		return nil, validateErr
 	}
 	return claims, nil
 }
 
-func getClietn() *casdoorsdk.Client {
+func ValidateUserAndSession(token string, claims *casdoorsdk.Claims) error {
+	if _, cacheErr := userCache.Get(claims.User.Id); cacheErr == nil {
+		return nil
+	}
+	intrToken, err := getClient().IntrospectToken(token, "access_token")
+	if err != nil {
+		return err
+	}
+	if !intrToken.Active {
+		return errors.New("token is not active")
+	}
+	user, err := getClient().GetUser(claims.User.Name)
+	if err != nil {
+		return err
+	}
+	if user.IsDeleted || user.IsForbidden {
+		return errors.New("user is forbidden or deleted")
+	}
+	userCache.Set(claims.User.Id, []byte(claims.User.Name))
+	return nil
+}
+
+func ResetUserValidation(id string) {
+	userCache.Delete(id)
+}
+
+func getClient() *casdoorsdk.Client {
 	if casdoorClient == nil {
 		casdoorClient = createClient()
 	}
@@ -87,7 +99,7 @@ func createClient() *casdoorsdk.Client {
 		config.GetEnvVar(config.OIDC_CLIENT_ID),
 		config.GetEnvVar(config.OIDC_CLIENT_SECRET),
 		string(cert),
-		"garptea",
-		"garptea-app",
+		config.GetStringOrEmpty(config.OIDC_ORGANIZATION),
+		config.GetStringOrEmpty(config.OIDC_APP_NAME),
 	)
 }

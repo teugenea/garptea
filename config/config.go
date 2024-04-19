@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 
@@ -22,6 +21,9 @@ const (
 	OIDC_ACCESS_TOKEN_URL ConfigKey = "OIDC_ACCESS_TOKEN_URL"
 	OIDC_CLIENT_ID        ConfigKey = "OIDC_CLIENT_ID"
 	OIDC_CLIENT_SECRET    ConfigKey = "OIDC_CLIENT_SECRET"
+	OIDC_APP_NAME         ConfigKey = "OIDC_APP_NAME"
+	OIDC_ORGANIZATION     ConfigKey = "OIDC_ORGANIZATION"
+	HOOK_SECRET           ConfigKey = "HOOK_SECRET"
 	PUBLIC_CERT_FILE      ConfigKey = "PUBLIC_CERT_FILE"
 	TLS_ENABLED           ConfigKey = "TLS_ENABLED"
 	TLS_CERT_FILE         ConfigKey = "TLS_CERT_FILE"
@@ -71,14 +73,6 @@ func GetBoolOrDefault(key ConfigKey, defaultValue bool) bool {
 		return defaultValue
 	}
 	return value
-}
-
-func ContatEnvVars(keys ...ConfigKey) string {
-	var buffer bytes.Buffer
-	for _, key := range keys {
-		buffer.WriteString(GetEnvVar(key))
-	}
-	return buffer.String()
 }
 
 func LoadConfig() {

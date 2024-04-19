@@ -2,17 +2,41 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 
 	"garptea/auth"
+	"garptea/config"
 )
-
-func JwtErrorHandler(c *fiber.Ctx, err error) error {
-	return c.Redirect(auth.GetLoginUrl())
-}
 
 func GetJwtToken(c *fiber.Ctx) error {
 	queries := c.Queries()
-	token := auth.GetTokenByAccessCode(queries["code"], queries["state"])
-	c.Locals("user", token)
-	return c.SendString(token)
+	token, err := auth.GetTokenByAccessCode(queries["code"], queries["state"])
+	if err != nil {
+		return err
+	}
+	return c.SendString(token.AccessToken)
+}
+
+type hookBody struct {
+	ExtendedUser extendedUser `json:"extendedUser"`
+}
+
+type extendedUser struct {
+	Id string `json:"id"`
+}
+
+func ActualizeUserAuth(c *fiber.Ctx) error {
+	authHeader := c.Get("Authorization")
+	if len(authHeader) == 0 {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+	if authHeader == config.GetStringOrEmpty(config.HOOK_SECRET) {
+		payload := new(hookBody)
+		if err := c.BodyParser(&payload); err != nil {
+			log.Errorf("cannot trigger hook: %s", err)
+		}
+		log.Infof("user was edited id=%s", payload.ExtendedUser.Id)
+		auth.ResetUserValidation(payload.ExtendedUser.Id)
+	}
+	return c.Next()
 }
