@@ -5,7 +5,7 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
-    container_name: garptea-postgres
+    container_name: postgres
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -19,8 +19,8 @@ services:
     user: ${USER_ID}:${GROUP_ID}
   
   casdoor:
-    image: mycs:latest
-    container_name: garptea-casdoor
+    image: devcasdoor:v1
+    container_name: casdoor
     restart: unless-stopped
     ports:
       - 8000:8000

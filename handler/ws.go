@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"garptea/auth"
 	"garptea/ws"
 
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
@@ -22,9 +23,10 @@ func WsHandler(c *websocket.Conn) {
 
 	c.SetPongHandler(func(appData string) error {
 		log.Info("pong")
-		// if err := auth.ValidateUserAndSession(claims); err != nil {
-		// 	ws.Unregister(connectionParams)
-		// }
+		if err := auth.ValidateUserAndSession(c.Locals("token").(string), claims); err != nil {
+			//log.Infof("disconnect user due to auth id=%s", claims.User.Id)
+			ws.Unregister(connectionParams)
+		}
 		return nil
 	})
 	c.SetCloseHandler(func(code int, text string) error {

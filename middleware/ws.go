@@ -26,6 +26,7 @@ func WsUpgrader(c *fiber.Ctx) error {
 	}
 
 	c.Locals("claims", claims)
+	c.Locals("token", rawToken)
 	if websocket.IsWebSocketUpgrade(c) {
 		return c.Next()
 	}
