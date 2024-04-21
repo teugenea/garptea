@@ -17,13 +17,13 @@ func SetupRoutes(app *fiber.App) {
 	}))
 
 	app.Get("/token", handler.GetJwtToken)
-	app.Get("/restricted", middleware.Protected(), restricted)
+	app.Get("/restricted", middleware.Protected, restricted)
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World 👋!")
 	})
 
 	app.Get("/ws", middleware.WsUpgrader, websocket.New(handler.WsHandler))
-	app.Post("/hook", handler.ActualizeUserAuth)
+	app.Post("/hooks/user-actualize", handler.ActualizeUserAuth)
 }
 
 func restricted(c *fiber.Ctx) error {

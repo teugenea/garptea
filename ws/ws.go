@@ -46,7 +46,6 @@ func RunWsLoop() {
 
 		case cmd := <-perUserMsg:
 			cl := clients[cmd.Connection]
-			log.Infof("Command: %s", cmd.Message)
 			cl.hbTicker.Reset(time.Second * 5)
 
 			//case msg := <-broadcastMsg:

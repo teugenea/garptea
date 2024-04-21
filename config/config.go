@@ -16,7 +16,6 @@ const (
 	PORT                  ConfigKey = "PORT"
 	HOST                  ConfigKey = "HOST"
 	OIDC_PROVIDER_URL     ConfigKey = "OIDC_PROVIDER_URL"
-	JWKS_URL              ConfigKey = "JWKS_URL"
 	AUTH_URL              ConfigKey = "AUTH_URL"
 	OIDC_ACCESS_TOKEN_URL ConfigKey = "OIDC_ACCESS_TOKEN_URL"
 	OIDC_CLIENT_ID        ConfigKey = "OIDC_CLIENT_ID"
@@ -32,7 +31,6 @@ const (
 
 var (
 	mandatoryKeys = [...]ConfigKey{
-		JWKS_URL,
 		OIDC_PROVIDER_URL,
 		AUTH_URL,
 		OIDC_ACCESS_TOKEN_URL,

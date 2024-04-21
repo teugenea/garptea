@@ -11,7 +11,7 @@ import (
 
 func WsHandler(c *websocket.Conn) {
 
-	claims := c.Locals("claims").(*casdoorsdk.Claims)
+	claims := c.Locals(auth.LOCALS_CLAIMS).(*casdoorsdk.Claims)
 	connectionParams := ws.ConnectionParams{
 		UserId:     claims.User.Id,
 		Connection: c,
@@ -22,9 +22,8 @@ func WsHandler(c *websocket.Conn) {
 	ws.Register(connectionParams)
 
 	c.SetPongHandler(func(appData string) error {
-		log.Info("pong")
-		if err := auth.ValidateUserAndSession(c.Locals("token").(string), claims); err != nil {
-			//log.Infof("disconnect user due to auth id=%s", claims.User.Id)
+		if err := auth.ValidateUserAndSession(c.Locals(auth.LOCALS_TOKEN).(string), claims); err != nil {
+			log.Infof("disconnect user due to auth id=%s", claims.User.Id)
 			ws.Unregister(connectionParams)
 		}
 		return nil

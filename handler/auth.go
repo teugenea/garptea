@@ -26,7 +26,7 @@ type extendedUser struct {
 }
 
 func ActualizeUserAuth(c *fiber.Ctx) error {
-	authHeader := c.Get("Authorization")
+	authHeader := c.Get(auth.HEADER_AUTH)
 	if len(authHeader) == 0 {
 		return c.SendStatus(fiber.StatusUnauthorized)
 	}
